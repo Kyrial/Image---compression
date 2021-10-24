@@ -118,11 +118,24 @@ int inverse(int nH, int nW,OCTET* Img, int i, int j){
 	else return Img[i*nW+j]+128;
 }
 
+void pretraitement(int nH, int nW,OCTET* ImgIn,OCTET* ImgOut){
+  for (int i=1; i < nH; i++)
+    for (int j=1; j < nW; j++){
+      int predict = predicteur(nH, nW, ImgIn, i,j);
+      if(abs(ImgIn[i*nW+j]-predict)>=abs(inverse(nH,nW,ImgIn,i,j)- predict))
+        ImgOut[i*nW+j] = ImgIn[i*nW+j]<128 ? predict-63 : predict +63;
+      else
+        ImgOut[i*nW+j] = ImgIn[i*nW+j];
+    }
+  
+}
+
 void reconstruireImg(int nH, int nW,OCTET* ImgIn,OCTET* ImgOut){
 	for (int i=1; i < nH; i++)
     for (int j=1; j < nW; j++){
       int predict = predicteur(nH, nW, ImgIn, i,j);
-      if((ImgIn[i*nW+j]>=128 && predict <128) || (ImgIn[i*nW+j]<128 && predict >=128))
+      //if((ImgIn[i*nW+j]>=128 && predict <128) || (ImgIn[i*nW+j]<128 && predict >=128))
+      if(abs(ImgIn[i*nW+j]-predict)>abs(inverse(nH,nW,ImgIn,i,j)- predict))
         ImgOut[i*nW+j] = inverse(nH,nW,ImgIn,i,j);
       else
         ImgOut[i*nW+j] = ImgIn[i*nW+j];
@@ -163,6 +176,8 @@ int main(int argc, char* argv[])
   plan = 7;
 	
 
+  pretraitement( nH,  nW, ImgIn,ImgIn);
+  
 	srand(Seed);
   	chiffrementSymetrique(nTaille, ImgIn, ImgChiffre);
 	//insert msg secret sauf i =0 et j=0
@@ -178,8 +193,8 @@ int main(int argc, char* argv[])
   reconstruireImg( nH,  nW, ImgDechiffre, ImgDechiffre);
 
   
-	char msgIncrusterDehiffre[250]= "imgDechiffre_et_Reparer.pgm";
- 	ecrire_image_pgm(msgIncrusterDehiffre, ImgDechiffre, nH, nW);
+	char msgIncrusterDechiffre[250]= "imgDechiffre_et_Reparer2.pgm";
+ 	ecrire_image_pgm(msgIncrusterDechiffre, ImgDechiffre, nH, nW);
 	
 	
 	
